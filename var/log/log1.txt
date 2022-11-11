@@ -1,0 +1,12 @@
+Nov  6 00:04:01 LMCreditApp-Staging-External CRON[401971]: pam_unix(cron:session): session opened for user root by (uid=0)
+Nov  6 00:04:02 LMCreditApp-Staging-External CRON[401971]: pam_unix(cron:session): session closed for user root
+Nov  6 00:04:45 LMCreditApp-Staging-External sshd[401975]: Unable to negotiate with 61.177.173.61 port 2598: no matching key exchange method found. Their offer: diffie-hellman-group1-sha1,diffie-hellman-group14-sha1,diffie-hellman-group-exchange-sha1 [preauth]
+Nov  6 00:12:46 LMCreditApp-Staging-External sshd[401979]: Received disconnect from 152.89.196.123 port 37298:11: Bye Bye [preauth]
+Nov  6 00:12:46 LMCreditApp-Staging-External sshd[401979]: Disconnected from authenticating user root 152.89.196.123 port 37298 [preauth]
+Nov  6 00:15:53 LMCreditApp-Staging-External sshd[401982]: Invalid user Root from 179.60.147.101 port 17100
+Nov  6 00:15:54 LMCreditApp-Staging-External sshd[401982]: Connection closed by invalid user Root 179.60.147.101 port 17100 [preauth]
+Nov  6 00:16:23 LMCreditApp-Staging-External sshd[401985]: Invalid user ubuntu from 35.222.76.137 port 45512
+Nov  6 00:16:24 LMCreditApp-Staging-External sshd[401985]: Received disconnect from 35.222.76.137 port 45512:11: Bye Bye [preauth]
+Nov  6 00:16:24 LMCreditApp-Staging-External sshd[401985]: Disconnected from invalid user ubuntu 35.222.76.137 port 45512 [preauth]
+Nov  6 00:16:53 LMCreditApp-Staging-External sshd[401987]: Connection closed by 45.79.181.94 port 35972 [preauth]
+Nov  6 00:16:53 LMCreditApp-Staging-External sshd[401989]: Connection closed by 45.79.181.94 port 35982 [preauth]
