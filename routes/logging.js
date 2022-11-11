@@ -15,13 +15,13 @@ app.get("/getLogs", async (req, res) => {
         }
         res.json(result)
     } else {
-        res.send({ message: "Invalid latestLogs Value" }) //Invalid latestLog values
+        res.send({ message: "Invalid latestLogs Value" }) //Invalid latestLogs values
     }
 
 })
 async function getLogs(lastLinesLimit, filename, searchString) {
     const path = './var/log/' + filename
-    const fileCheck = findFile(path) //Ensure File exists in log folder before proceeding
+    const fileCheck = findFile(path, filename) //Ensure File exists in log folder before proceeding
     return new Promise((resolve, reject) => {
         if (fileCheck.data) {
             const fileSize = fs.statSync(path).size //Checking File Size to determine buffersize
@@ -48,7 +48,7 @@ async function getLogs(lastLinesLimit, filename, searchString) {
 
 function getLastLines(lines, lastLinesLimit) {
     try {
-        if (lastLinesLimit > lines.length) // If more lines than the file can provide is specified then just send all the lines
+        if (lastLinesLimit > lines.length || !lastLinesLimit) // If more lines than the file can provide is specified then just send all the lines
             lastLinesLimit = lines.length
         let orderedLines = []
         for (var i = lines.length - 1; i >= lines.length - lastLinesLimit; i--) {// We are reading from the end of the file and keeping track of the number of lines
@@ -60,9 +60,9 @@ function getLastLines(lines, lastLinesLimit) {
     }
 }
 
-function findFile(path) {
+function findFile(path, fileName) {
     try {
-        if (fs.existsSync(path))
+        if (fs.existsSync(path) && fileName != '')
             return ({ message: "File Found", data: true })
         else
             return ({ message: "File Not Found", data: false, })
@@ -78,7 +78,6 @@ function searchLogs(lastLines, searchString) {
     let filteredLastLines = []
     for (var i = 0; i < lastLines.length; i++) {
         if (lastLines[i].includes(searchString)) { // For each lines requested, check whether the searchstring exits or not
-            console.log(lastLines[i])
             filteredLastLines.push(lastLines[i]) // Push the lines that contain the searchString to this array and return it
         }
     }
