@@ -73,5 +73,8 @@ async function getLogs(lastLinesLimit, filename) {
 async function searchLogs() {
 
 }
+async function doesFileExist() {
+
+}
 
 module.exports = app;
