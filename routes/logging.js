@@ -9,16 +9,21 @@ app.get("/getLogs", async (req, res) => {
     console.log(fileName)
     console.log(latestLogs)
     console.log(searchString)
-    var result
-    try {
-        result = await getLogs(latestLogs, fileName, searchString)
-        console.log(result)
-        console.log("Number of Lines : " + result['data'].length)
+    if (isPositiveInteger(latestLogs) || latestLogs == '' || !latestLogs) {
+        var result
+        try {
+            result = await getLogs(latestLogs, fileName, searchString)
+            console.log(result)
+            console.log("Number of Lines : " + result['data'].length)
 
-    } catch (err) {
-        result = err
+        } catch (err) {
+            result = err
+        }
+        res.json(result)
+    } else {
+        res.send({ message: "Invalid latestLogs Value" })
     }
-    res.json(result)
+
 })
 async function getLogs(lastLinesLimit, filename, searchString) {
     const path = './var/log/' + filename
@@ -49,8 +54,13 @@ async function getLogs(lastLinesLimit, filename, searchString) {
 
 function getLastLines(lines, lastLinesLimit) {
     try {
-        lines = lines.slice((lines.length) - lastLinesLimit, lines.length)
-        return (lines)
+        if (lastLinesLimit > lines.length)
+            lastLinesLimit = lines.length
+        let orderedLines = []
+        for (var i = lines.length - 1; i >= lines.length - lastLinesLimit; i--) {
+            orderedLines.push(lines[i])
+        }
+        return (orderedLines)
     } catch (err) {
         return (err)
     }
@@ -79,6 +89,14 @@ function searchLogs(lastLines, searchString) {
         }
     }
     return (filteredLastLines)
+}
+function isPositiveInteger(x) {
+    const num = Number(x)
+    if (Number.isInteger(num) && num >= 0) {
+        return true
+    } else {
+        return false
+    }
 }
 
 module.exports = app;
