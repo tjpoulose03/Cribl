@@ -3,7 +3,7 @@
 
 This api will provide the user with a list of log entries in chronological order for a sepcified file. Parameters can include the number of entries being returned back to the user and/or any tex/keywords to search by.
 
-The fs module was used and as well as ReadStreams to read the file in chunks to accomadate for files >1GB
+The fs module was used and as well as ReadStreams to read the file in chunks to accomadate for files >1GB. Feel free to add additional files to the ./var/log folder for further testing
 
 
 ## Run Locally
