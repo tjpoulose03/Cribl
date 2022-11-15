@@ -19,29 +19,39 @@ app.get("/getLogs", async (req, res) => {
     }
 
 })
+
+//NEW METHOD
 async function getLogs(lastLinesLimit, filename, searchString) {
     const path = './var/log/' + filename
     const fileCheck = findFile(path, filename) //Ensure File exists in log folder before proceeding
     return new Promise(async (resolve, reject) => {
         if (fileCheck.data) {
             const fileSize = fs.statSync(path).size //Check the size of the file to determine the buffer size
-            const bufferSize = Math.min(10000, fileSize) //For larger files take chunks of 10000 bytes otherwise take the entire file as a chunk 
+            const bufferSize = Math.min(10000, fileSize) //For larger files take chunks of 10000 bytes otherwise take the entire file as a chunk
             let end = fileSize - 1  //We will start reading from the end of the file as chunks 
             let start = end - bufferSize // We are reading the file in chunks of bufferSize until the number of lines is met
             let totalChunks = '' //This will contain the all the chunks we convert to string
-            while ((totalChunks.split(/\r?\n/).length) < lastLinesLimit) { //Keep reading the file from the bottom up until the number of lines is reached
-                totalChunks = await readAnotherChunk(totalChunks, start, end, path)
-                end = start - 1 //change the range of the file pointer to read the next section
-                start = start - bufferSize
-                if (start < 0) //If we have gone too far then just set the start of the file to 0
-                    start = 0
-                if (end < 0) //If the end of the file has gone too far we know we have reached the top of the file so theres nothing left to read, exit the loop
-                    break
+            if (!lastLinesLimit || start == -1) { //If no lastlines were specified the bufferSize ends up being the filesize, return entire file
+                totalChunks = await readEntireFile(totalChunks, path)
+                let orderedList = getLastLines(totalChunks.split(/\r?\n/), lastLinesLimit)
+                if (searchString)
+                    orderedList = searchLogs(orderedList, searchString) //filter out the lines to get lines that only contain the searchString
+                resolve({ message: "Success", data: orderedList })
+            } else {
+                while ((totalChunks.split(/\r?\n/).length) < lastLinesLimit) { //Keep reading the file from the bottom up until the number of lines is reached
+                    totalChunks = await readAnotherChunk(totalChunks, start, end, path)
+                    end = start - 1 //change the range of the file pointer to read the next section
+                    start = start - bufferSize
+                    if (start < 0) //If we have gone too far then just set the start of the file to 0
+                        start = 0
+                    if (end < 0) //If the end of the file has gone too far we know we have reached the top of the file so theres nothing left to read, exit the loop
+                        break
+                }
+                let orderedList = getLastLines(totalChunks.split(/\r?\n/), lastLinesLimit) //order the lines and get only the lines that are needed
+                if (searchString)
+                    orderedList = searchLogs(orderedList, searchString) //filter out the lines to get lines that only contain the searchString
+                resolve({ message: "Success", data: orderedList })
             }
-            let orderedList = getLastLines(totalChunks.split(/\r?\n/), lastLinesLimit) //order the lines and get only the lines that are needed
-            if (searchString)
-                orderedList = searchLogs(orderedList, searchString) //filter out the lines to get lines that only contain the searchString
-            resolve({ message: "Success", data: orderedList })
         } else {
             resolve(fileCheck) //Return file does not exist
         }
@@ -59,6 +69,18 @@ async function readAnotherChunk(totalChunks, start, end, path) {
     })
 
 }
+async function readEntireFile(totalChunks, path) {
+    return new Promise((resolve, reject) => {
+        const readStream = fs.createReadStream(path)
+        readStream.on('data', (chunk) => {
+            totalChunks = totalChunks.concat(chunk.toString())
+        })
+        readStream.on('end', () => {
+            resolve(totalChunks)
+        })
+    })
+}
+
 
 function getLastLines(lines, lastLinesLimit) {
     try {
@@ -106,30 +128,31 @@ function isPositiveInteger(x) {
     }
 }
 
-async function getAllLogs(lastLinesLimit, filename, searchString) {
-    const path = './var/log/' + filename
-    const fileCheck = findFile(path, filename) //Ensure File exists in log folder before proceeding
-    return new Promise((resolve, reject) => {
-        if (fileCheck.data) {
-            const fileSize = fs.statSync(path).size //Checking File Size to determine buffersize
-            const bufferSize = Math.min(10000, fileSize) //For larger files take chunks of 10000 bytes otherwise take the entire file as a chunk 
-            const readStream = fs.createReadStream(path, { highWaterMark: bufferSize }) //Create a read stream to read the file in chunks
-            let Totallines = ''
-            let lastLines
-            readStream.on('data', (chunk) => {
-                Totallines = Totallines.concat(chunk.toString()) //For every chunk concat it to the Total lines string for parsing later
-            })
-            readStream.on('end', () => {
-                lastLines = getLastLines(Totallines.split(/\r?\n/), lastLinesLimit) //Once the file has been read, split the string into lines and get the required number of lines
-                if (searchString)
-                    lastLines = searchLogs(lastLines, searchString) //filter out the lines to get lines that only contain the searchString
-                resolve({ message: "Success", data: lastLines })
-            })
-        } else {
-            resolve(fileCheck)
-        }
-    })
-}
+//OLD METHOD
+// async function getLogs(lastLinesLimit, filename, searchString) {
+//     const path = './var/log/' + filename
+//     const fileCheck = findFile(path, filename) //Ensure File exists in log folder before proceeding
+//     return new Promise((resolve, reject) => {
+//         if (fileCheck.data) {
+//             const fileSize = fs.statSync(path).size //Checking File Size to determine buffersize
+//             const bufferSize = Math.min(10000, fileSize) //For larger files take chunks of 10000 bytes otherwise take the entire file as a chunk 
+//             const readStream = fs.createReadStream(path, { highWaterMark: bufferSize }) //Create a read stream to read the file in chunks
+//             let Totallines = ''
+//             let lastLines
+//             readStream.on('data', (chunk) => {
+//                 Totallines = Totallines.concat(chunk.toString()) //For every chunk concat it to the Total lines string for parsing later
+//             })
+//             readStream.on('end', () => {
+//                 lastLines = getLastLines(Totallines.split(/\r?\n/), lastLinesLimit) //Once the file has been read, split the string into lines and get the required number of lines
+//                 if (searchString)
+//                     lastLines = searchLogs(lastLines, searchString) //filter out the lines to get lines that only contain the searchString
+//                 resolve({ message: "Success", data: lastLines })
+//             })
+//         } else {
+//             resolve(fileCheck)
+//         }
+//     })
+// }
 
 
 
